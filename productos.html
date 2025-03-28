@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - La Leonesa</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt0qjN_v5UFYknGoMT4aCay_7yq4uErgE",
+            authDomain: "leonesa-3cbf2.firebaseapp.com",
+            projectId: "leonesa-3cbf2",
+            storageBucket: "leonesa-3cbf2.firebasestorage.app",
+            messagingSenderId: "803664996980",
+            appId: "1:803664996980:web:cb00224d9ced5bcc04ff21",
+            measurementId: "G-LG37TJ1KD7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function agregarProducto() {
+            const nombre = document.getElementById("nombre").value;
+            const precio = document.getElementById("precio").value;
+            const cantidad = document.getElementById("cantidad").value;
+
+            if (nombre && precio && cantidad) {
+                await addDoc(collection(db, "productos"), {
+                    nombre: nombre,
+                    precio: parseFloat(precio),
+                    cantidad: parseInt(cantidad)
+                });
+                alert("Producto agregado correctamente");
+                mostrarProductos();
+            } else {
+                alert("Por favor, completa todos los campos");
+            }
+        }
+
+        async function eliminarProducto(id) {
+            await deleteDoc(doc(db, "productos", id));
+            alert("Producto eliminado correctamente");
+            mostrarProductos();
+        }
+
+        async function mostrarProductos() {
+            const tabla = document.getElementById("productos-body");
+            tabla.innerHTML = "";
+            const querySnapshot = await getDocs(collection(db, "productos"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const fila = `<tr>
+                    <td>${data.nombre}</td>
+                    <td>${data.precio.toFixed(2)}</td>
+                    <td>${data.cantidad}</td>
+                    <td><button onclick="eliminarProducto('${doc.id}')">Eliminar</button></td>
+                </tr>`;
+                tabla.innerHTML += fila;
+            });
+        }
+
+        window.agregarProducto = agregarProducto;
+        window.eliminarProducto = eliminarProducto;
+        window.onload = mostrarProductos;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #f4b41a;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #e0a800;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f4b41a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Productos</h2>
+        <input type="text" id="nombre" placeholder="Nombre del producto">
+        <input type="number" id="precio" placeholder="Precio">
+        <input type="number" id="cantidad" placeholder="Cantidad">
+        <button onclick="agregarProducto()">Agregar Producto</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="productos-body"></tbody>
+        </table>
+    </div>
+</body>
+</html>
+ 

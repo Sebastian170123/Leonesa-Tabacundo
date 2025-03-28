@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - La Leonesa</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt0qjN_v5UFYknGoMT4aCay_7yq4uErgE",
+            authDomain: "leonesa-3cbf2.firebaseapp.com",
+            projectId: "leonesa-3cbf2",
+            storageBucket: "leonesa-3cbf2.firebasestorage.app",
+            messagingSenderId: "803664996980",
+            appId: "1:803664996980:web:cb00224d9ced5bcc04ff21",
+            measurementId: "G-LG37TJ1KD7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function agregarProveedor() {
+            const nombre = document.getElementById("nombre").value;
+            const contacto = document.getElementById("contacto").value;
+            const telefono = document.getElementById("telefono").value;
+
+            if (nombre && contacto && telefono) {
+                await addDoc(collection(db, "proveedores"), {
+                    nombre: nombre,
+                    contacto: contacto,
+                    telefono: telefono
+                });
+                alert("Proveedor agregado correctamente");
+                mostrarProveedores();
+            } else {
+                alert("Por favor, completa todos los campos");
+            }
+        }
+
+        async function eliminarProveedor(id) {
+            await deleteDoc(doc(db, "proveedores", id));
+            alert("Proveedor eliminado correctamente");
+            mostrarProveedores();
+        }
+
+        async function mostrarProveedores() {
+            const tabla = document.getElementById("proveedores-body");
+            tabla.innerHTML = "";
+            const querySnapshot = await getDocs(collection(db, "proveedores"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const fila = `<tr>
+                    <td>${data.nombre}</td>
+                    <td>${data.contacto}</td>
+                    <td>${data.telefono}</td>
+                    <td><button onclick="eliminarProveedor('${doc.id}')">Eliminar</button></td>
+                </tr>`;
+                tabla.innerHTML += fila;
+            });
+        }
+
+        window.agregarProveedor = agregarProveedor;
+        window.eliminarProveedor = eliminarProveedor;
+        window.onload = mostrarProveedores;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #f4b41a;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #e0a800;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f4b41a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestión de Proveedores</h2>
+        <input type="text" id="nombre" placeholder="Nombre del proveedor">
+        <input type="text" id="contacto" placeholder="Nombre del contacto">
+        <input type="tel" id="telefono" placeholder="Teléfono">
+        <button onclick="agregarProveedor()">Agregar Proveedor</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Contacto</th>
+                    <th>Teléfono</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="proveedores-body"></tbody>
+        </table>
+    </div>
+</body>
+</html>

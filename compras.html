@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compras - La Leonesa</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt0qjN_v5UFYknGoMT4aCay_7yq4uErgE",
+            authDomain: "leonesa-3cbf2.firebaseapp.com",
+            projectId: "leonesa-3cbf2",
+            storageBucket: "leonesa-3cbf2.firebasestorage.app",
+            messagingSenderId: "803664996980",
+            appId: "1:803664996980:web:cb00224d9ced5bcc04ff21",
+            measurementId: "G-LG37TJ1KD7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function cargarCompras() {
+            const comprasRef = collection(db, "compras");
+            const comprasSnapshot = await getDocs(comprasRef);
+            const compras = comprasSnapshot.docs.map(doc => doc.data());
+            
+            let comprasHTML = "";
+            compras.forEach(compra => {
+                comprasHTML += `<tr>
+                    <td>${compra.producto}</td>
+                    <td>${compra.precio}</td>
+                    <td>${compra.proveedor}</td>
+                </tr>`;
+            });
+            document.getElementById("compras-list").innerHTML = comprasHTML;
+        }
+
+        window.onload = cargarCompras;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f4b41a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Registro de Compras</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Proveedor</th>
+                </tr>
+            </thead>
+            <tbody id="compras-list">
+                <!-- Datos de Firebase -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

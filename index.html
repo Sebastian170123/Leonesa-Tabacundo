@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - La Leonesa</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt0qjN_v5UFYknGoMT4aCay_7yq4uErgE",
+            authDomain: "leonesa-3cbf2.firebaseapp.com",
+            databaseURL: "https://leonesa-3cbf2-default-rtdb.firebaseio.com",
+            projectId: "leonesa-3cbf2",
+            storageBucket: "leonesa-3cbf2.firebasestorage.app",
+            messagingSenderId: "803664996980",
+            appId: "1:803664996980:web:cb00224d9ced5bcc04ff21",
+            measurementId: "G-LG37TJ1KD7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        async function cargarDatos() {
+            const productosRef = collection(db, "productos");
+            const productosSnapshot = await getDocs(productosRef);
+            const productos = productosSnapshot.docs.map(doc => doc.data());
+            document.getElementById("productos-count").innerText = productos.length;
+        }
+
+        window.onload = cargarDatos;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background: #003366;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar h2 {
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #004080;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            background: #f4b41a;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .card h3 {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>La Leonesa</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="compras.html">Compras</a></li>
+            <li><a href="ventas.html">Ventas</a></li>
+            <li><a href="stock.html">Stock</a></li>
+            <li><a href="proveedores.html">Proveedores</a></li>
+            <li><a href="productos.html">Productos</a></li>
+            <li><a href="#" id="logout-btn">Cerrar Sesión</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="header">Sistema de Inventario</div>
+        <div class="grid-container">
+            <div class="card">
+                <h3>Órdenes de Compra</h3>
+                <p>4</p>
+            </div>
+            <div class="card">
+                <h3>Compras Recibidas</h3>
+                <p>3</p>
+            </div>
+            <div class="card">
+                <h3>Devoluciones</h3>
+                <p>2</p>
+            </div>
+            <div class="card">
+                <h3>Ventas</h3>
+                <p>2</p>
+            </div>
+            <div class="card">
+                <h3>Proveedores</h3>
+                <p>1</p>
+            </div>
+            <div class="card">
+                <h3>Productos</h3>
+                <p id="productos-count">0</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

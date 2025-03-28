@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - La Leonesa</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCt0qjN_v5UFYknGoMT4aCay_7yq4uErgE",
+            authDomain: "leonesa-3cbf2.firebaseapp.com",
+            projectId: "leonesa-3cbf2",
+            storageBucket: "leonesa-3cbf2.appspot.com",
+            messagingSenderId: "803664996980",
+            appId: "1:803664996980:web:cb00224d9ced5bcc04ff21",
+            measurementId: "G-LG37TJ1KD7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let carrito = {};
+        let totalVenta = 0;
+
+        async function cargarProductos() {
+            const contenedor = document.getElementById("productos-lista");
+            contenedor.innerHTML = "";
+            const querySnapshot = await getDocs(collection(db, "productos"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const item = `<div class="producto">
+                    <h3>${data.nombre}</h3>
+                    <p>Precio: $${data.precio.toFixed(2)}</p>
+                    <p>Stock: <span id="stock-${doc.id}">${data.cantidad}</span></p>
+                    <div class="cantidad">
+                        <button onclick="modificarCantidad('${doc.id}', -1, ${data.precio})">-</button>
+                        <span id="cantidad-${doc.id}">0</span>
+                        <button onclick="modificarCantidad('${doc.id}', 1, ${data.precio})">+</button>
+                    </div>
+                </div>`;
+                contenedor.innerHTML += item;
+            });
+        }
+
+        function modificarCantidad(id, cambio, precio) {
+            const cantidadElemento = document.getElementById(`cantidad-${id}`);
+            let cantidadActual = parseInt(cantidadElemento.innerText);
+            const stockElemento = document.getElementById(`stock-${id}`);
+            let stockDisponible = parseInt(stockElemento.innerText);
+
+            if (cambio > 0 && cantidadActual < stockDisponible) {
+                cantidadActual++;
+                totalVenta += precio;
+            } else if (cambio < 0 && cantidadActual > 0) {
+                cantidadActual--;
+                totalVenta -= precio;
+            }
+
+            cantidadElemento.innerText = cantidadActual;
+            carrito[id] = cantidadActual;
+            document.getElementById("total-venta").innerText = `$${totalVenta.toFixed(2)}`;
+        }
+
+        async function realizarVenta() {
+            for (const id in carrito) {
+                if (carrito[id] > 0) {
+                    const productoRef = doc(db, "productos", id);
+                    const productoSnap = await getDocs(collection(db, "productos"));
+                    let productoData = {};
+                    productoSnap.forEach((doc) => {
+                        if (doc.id === id) productoData = doc.data();
+                    });
+
+                    const total = carrito[id] * productoData.precio;
+                    await addDoc(collection(db, "ventas"), {
+                        producto: productoData.nombre,
+                        cantidad: carrito[id],
+                        precio: productoData.precio,
+                        total,
+                        fecha: new Date().toISOString()
+                    });
+
+                    await updateDoc(productoRef, { cantidad: productoData.cantidad - carrito[id] });
+                }
+            }
+            alert(`Venta realizada. Total: $${totalVenta.toFixed(2)}`);
+            carrito = {};
+            totalVenta = 0;
+            document.getElementById("total-venta").innerText = "$0.00";
+            cargarProductos();
+        }
+
+        function cargarVentas() {
+            const ventasLista = document.getElementById("ventas-lista");
+            ventasLista.innerHTML = "";
+            onSnapshot(collection(db, "ventas"), (snapshot) => {
+                ventasLista.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const item = `<li>${data.fecha} - ${data.producto} x ${data.cantidad} = $${data.total.toFixed(2)}</li>`;
+                    ventasLista.innerHTML += item;
+                });
+            });
+        }
+
+        window.cargarProductos = cargarProductos;
+        window.modificarCantidad = modificarCantidad;
+        window.realizarVenta = realizarVenta;
+        window.onload = () => {
+            cargarProductos();
+            cargarVentas();
+        };
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .productos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .producto {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex: 1 1 calc(33% - 10px);
+        }
+        .cantidad {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            background: #f4b41a;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ventas</h2>
+        <div class="productos" id="productos-lista"></div>
+        <h3>Total de esta Venta: <span id="total-venta">$0.00</span></h3>
+        <button onclick="realizarVenta()">Realizar Venta</button>
+        <h2>Historial de Ventas</h2>
+        <ul id="ventas-lista"></ul>
+    </div>
+</body>
+</html>
